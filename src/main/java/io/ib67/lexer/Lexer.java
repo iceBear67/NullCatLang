@@ -101,12 +101,14 @@ public class Lexer {
             } else {
                 inIdOrLiteral = true; // not symbol & not identifier
             }
-            if (i == charStream.length - 1) {
+
+            if (i == charStream.length - 1) { //the end of file
                 if (inIdOrLiteral) {
                     if (stringMode) {
                         // cant parse!
                         throw new LexerException("Cant parse string until end of file: " + buffer.toString());
                     } else {
+                        buffer.append(now);
                         String str = buffer.toString();
                         identifierParse(str, nodes);
                     }
@@ -121,9 +123,9 @@ public class Lexer {
         return nodes;
     }
 
-    public Set<Token> tokenize() {
+    public List<Token> tokenize() {
         var lexedNodes = fuzzyTokenize();
-        var tokens = new LinkedHashSet<Token>();
+        var tokens = new ArrayList<Token>();
         var line = 1;
         for (int i = 0; i < lexedNodes.size(); i++) {
             LexedNode lexedNode = lexedNodes.get(i);

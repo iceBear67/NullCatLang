@@ -18,5 +18,6 @@ public class NullCatCompiler {
 
         String str = new String(new FileInputStream(new File("test.sb")).readAllBytes());
         new Lexer(str).tokenize().forEach(System.out::println);
+        SyntaxChecker.check(new Lexer(str).tokenize()).forEach(System.err::println);
     }
 }
