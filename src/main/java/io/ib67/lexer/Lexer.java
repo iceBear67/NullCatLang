@@ -1,9 +1,9 @@
 package io.ib67.lexer;
 
 import java.io.IOException;
+import java.math.BigInteger;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
-import java.util.List;
 import java.util.Set;
 
 public class Lexer {
@@ -103,11 +103,6 @@ public class Lexer {
             } else {
                 inIdOrLiteral = true; // not symbol & not identifier
             }
-            /* Collect String or Identifier */
-            if (inIdOrLiteral) {
-                buffer.append(now);
-                continue;
-            }
             if (i == charStream.length - 1) {
                 if (inIdOrLiteral) {
                     if (stringMode) {
@@ -119,16 +114,31 @@ public class Lexer {
                     }
                 }
             }
+            /* Collect String or Identifier */
+            if (inIdOrLiteral) {
+                buffer.append(now);
+                continue;
+            }
         }
         return nodes;
     }
-
+    private static final boolean isInteger(String str){
+        try{
+            new BigInteger(str);
+            return true;
+        }catch(Throwable t){
+            return false;
+        }
+    }
     private static final void identifierParse(String identifier, Set<LexedNode> nodes) {
         if (identifier.length() == 0) {
             return;
         }
         if (KWs.contains(identifier)) {
             nodes.add(new LexedNode(identifier, LexedNode.NodeType.KEYWORD));
+            return;
+        }else if(isInteger(identifier)){
+            nodes.add(new LexedNode(identifier, LexedNode.NodeType.LITERAL_NUMBER));
             return;
         }
         nodes.add(new LexedNode(identifier, LexedNode.NodeType.IDENTIFIER));
