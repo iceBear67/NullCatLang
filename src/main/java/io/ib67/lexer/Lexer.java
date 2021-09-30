@@ -35,7 +35,7 @@ public class Lexer {
     private final String rawContent;
 
     public Lexer(String content) {
-        rawContent = content.replaceAll("//.*|(\"(?:\\\\[^\"]|\\\\\"|.)*?\")|(?s)/\\*.*?\\*/","$1 ");
+        rawContent = content.replaceAll("//.*|(\"(?:\\\\[^\"]|\\\\\"|.)*?\")|(?s)/\\*.*?\\*/","$1 "); // remove comments.
     }
 
     public Set<LexedNode> startLexing() {
