@@ -1,0 +1,10 @@
+@keyword fn
+(
+)
+{
+}
+[
+]
+@operator +
+@operator -
+@operator =
