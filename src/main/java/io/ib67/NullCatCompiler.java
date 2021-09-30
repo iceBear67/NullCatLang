@@ -15,10 +15,8 @@ public class NullCatCompiler {
 
     }
     public static void main(String... args) throws IOException {
+
         String str = new String(new FileInputStream(new File("test.sb")).readAllBytes());
-        StringBuilder sb = new StringBuilder();
-        new Lexer(str).startLexing().forEach(e->{
-            sb.append(e.)
-        });
+        new Lexer(str).tokenize().forEach(System.out::println);
     }
 }

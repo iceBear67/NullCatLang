@@ -2,9 +2,7 @@ package io.ib67.lexer;
 
 import java.io.IOException;
 import java.math.BigInteger;
-import java.util.HashSet;
-import java.util.LinkedHashSet;
-import java.util.Set;
+import java.util.*;
 
 public class Lexer {
     private static final Set<String> KWs = new HashSet<>();
@@ -35,12 +33,12 @@ public class Lexer {
     private final String rawContent;
 
     public Lexer(String content) {
-        rawContent = content.replaceAll("//.*|(\"(?:\\\\[^\"]|\\\\\"|.)*?\")|(?s)/\\*.*?\\*/","$1 "); // remove comments.
+        rawContent = content.replaceAll("//.*|(\"(?:\\\\[^\"]|\\\\\"|.)*?\")|(?s)/\\*.*?\\*/", "$1 "); // remove comments.
     }
 
-    public Set<LexedNode> startLexing() {
+    public List<LexedNode> fuzzyTokenize() {
         char[] charStream = rawContent.toCharArray();
-        Set<LexedNode> nodes = new LinkedHashSet<>();
+        List<LexedNode> nodes = new ArrayList<>();
         StringBuilder buffer = new StringBuilder();
         boolean inIdOrLiteral = false;
         boolean stringMode = false;
@@ -122,22 +120,93 @@ public class Lexer {
         }
         return nodes;
     }
-    private static final boolean isInteger(String str){
-        try{
+
+    public Set<Token> tokenize() {
+        var lexedNodes = fuzzyTokenize();
+        var tokens = new LinkedHashSet<Token>();
+        var line = 1;
+        for (int i = 0; i < lexedNodes.size(); i++) {
+            LexedNode lexedNode = lexedNodes.get(i);
+            switch (lexedNode.getType()) {
+                case LINE_SEPERATOR:
+                    line++;
+                    break;
+                case SYMBOL:
+                case KEYWORD:
+                    var type = Arrays.stream(Token.Type.values()).filter(e -> e.getDef().equals(lexedNode.getContent())).findFirst().get();
+                    tokens.add(new Token(line, type, type.getDef()));
+                    break;
+                case LITERAL_STRING:
+                    tokens.add(new Token(line, Token.Type.LITERAL_STRING, lexedNode.getContent()));
+                    break;
+                case LITERAL_NUMBER:
+                    tokens.add(new Token(line, Token.Type.LITERAL_NUMBER, lexedNode.getContent()));
+                    break;
+                case OPERATOR:
+                    // =
+                    boolean isEnd = (i == lexedNodes.size() - 1);
+                    switch (lexedNode.getContent()) {
+                        case "=":
+                            if (isEnd) {
+                                throw new LexerException("Invalid syntax");
+                            }
+                            if (lexedNodes.get(i + 1).getType() == LexedNode.NodeType.OPERATOR && lexedNodes.get(i + 1).getContent().equals("=")) { // ==
+                                tokens.add(new Token(line, Token.Type.EQUALS, "=="));
+                                i = i + 1; // skip next
+                                break;
+                            } else {
+                                tokens.add(new Token(line, Token.Type.ASSIGNMENT, "="));
+                            }
+                        case ".":
+                            tokens.add(new Token(line, Token.Type.DOT, "."));
+                            break;
+                        case ",":
+                            tokens.add(new Token(line, Token.Type.COMMA, ","));
+                            break;
+                        case "-":
+                            tokens.add(new Token(line, Token.Type.MINUS, "-"));
+                            break;
+                        case "+":
+                            tokens.add(new Token(line, Token.Type.PLUS, "+"));
+                            break;
+                        case "*":
+                            tokens.add(new Token(line, Token.Type.STAR,"*"));
+                            break;
+                        case "/":
+                            tokens.add(new Token(line, Token.Type.SLASH,"/"));
+                            break;
+                        case ";":
+                            tokens.add(new Token(line, Token.Type.SEMICOLON,";"));
+                            break;
+
+                    }
+                    break;
+                case IDENTIFIER:
+                    tokens.add(new Token(line, Token.Type.IDENTIFIER, lexedNode.getContent()));
+                    break;
+
+            }
+        }
+        return tokens;
+    }
+
+    private static final boolean isInteger(String str) {
+        try {
             new BigInteger(str);
             return true;
-        }catch(Throwable t){
+        } catch (Throwable t) {
             return false;
         }
     }
-    private static final void identifierParse(String identifier, Set<LexedNode> nodes) {
+
+    private static final void identifierParse(String identifier, List<LexedNode> nodes) {
         if (identifier.length() == 0) {
             return;
         }
         if (KWs.contains(identifier)) {
             nodes.add(new LexedNode(identifier, LexedNode.NodeType.KEYWORD));
             return;
-        }else if(isInteger(identifier)){
+        } else if (isInteger(identifier)) {
             nodes.add(new LexedNode(identifier, LexedNode.NodeType.LITERAL_NUMBER));
             return;
         }

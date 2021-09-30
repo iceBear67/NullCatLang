@@ -1,10 +1,27 @@
 @keyword fn
+@keyword class
+@keyword while
+@keyword if
+@keyword for
+@keyword else
+@keyword this
+@keyword var
+@keyword nil
+@keyword true
+@keyword false
 (
+@
 )
 {
 }
 [
 ]
+@operator !
+@operator ^
+@operator .
+@operator *
 @operator +
 @operator -
+@operator /
 @operator =
+@operator ;
