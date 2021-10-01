@@ -131,6 +131,7 @@ public class Lexer {
             LexedNode lexedNode = lexedNodes.get(i);
             switch (lexedNode.getType()) {
                 case LINE_SEPERATOR:
+                    tokens.add(new Token(line, Token.Type.BREAK_LINE,""));
                     line++;
                     break;
                 case SYMBOL:

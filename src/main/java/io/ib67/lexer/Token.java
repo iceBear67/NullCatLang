@@ -19,7 +19,7 @@ public class Token {
         IDENTIFIER(""),
 
         CLASS("class"),FUNCTION("fn"),ANNOTATION("annotation"),FOR("for"),WHILE("while"),IF("if")
-        ,THIS("this"),TRUE("true"),FALSE("false"),ELSE("else"),VAR("var"),NULL("null"), // KEYWORDS
+        ,THIS("this"),TRUE("true"),FALSE("false"),ELSE("else"),VAR("var"),NULL("null"),PRINTLN("println"), // KEYWORDS
 
         LEFT_BRACE("("),RIGHT_BRACE(")"),
         LEFT_BRACKET("{"),RIGHT_BRACKET("}"),
