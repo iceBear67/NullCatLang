@@ -1,10 +1,13 @@
 package io.ib67.lexer;
 
+import io.ib67.util.Pair;
+
 import java.io.IOException;
 import java.math.BigInteger;
 import java.util.*;
 
 public class Lexer {
+    private final String fileName;
     private static final Set<String> KWs = new HashSet<>();
     private static final Set<Character> SYMBOLS = new HashSet<>();
     private static final Set<Character> OPERATORS = new HashSet<>();
@@ -32,8 +35,9 @@ public class Lexer {
 
     private final String rawContent;
 
-    public Lexer(String content) {
+    public Lexer(String content,String fileName) {
         rawContent = content.replaceAll("//.*|(\"(?:\\\\[^\"]|\\\\\"|.)*?\")|(?s)/\\*.*?\\*/", "$1 "); // remove comments.
+        this.fileName=fileName;
     }
 
     public List<LexedNode> fuzzyTokenize() {
@@ -42,6 +46,7 @@ public class Lexer {
         StringBuilder buffer = new StringBuilder();
         boolean inIdOrLiteral = false;
         boolean stringMode = false;
+        int line=1;
         for (int i = 0; i < charStream.length; i++) {
             char now = charStream[i];
             switch (now) {
@@ -65,7 +70,21 @@ public class Lexer {
                     }
                     break;
                 case '\n':
+                    // fix: flush buffer.
+                  //  buffer.append(now);
+                    if(inIdOrLiteral){
+                        if(stringMode){
+                            /*nodes.add(new LexedNode(buffer.toString(), LexedNode.NodeType.LITERAL_STRING));
+                            buffer = new StringBuilder();*/
+                            throw new LexerException(fileName+": Unexpected string end at line: "+line);
+                        }else{
+                            identifierParse(buffer.toString(),nodes);
+                            buffer = new StringBuilder();
+                        }
+                    }
                     nodes.add(new LexedNode("\n", LexedNode.NodeType.LINE_SEPERATOR));
+                    line++;
+                    continue;
                 case ' ':
                     if (stringMode) {
                         break;
@@ -96,7 +115,7 @@ public class Lexer {
                     nodes.add(new LexedNode(now, LexedNode.NodeType.OPERATOR));
                     continue;
                 } else {
-                    throw new LexerException("Unknown char: " + now);
+                    throw new LexerException(fileName+": Unknown char: " + now+" line: "+line);
                 }
             } else {
                 inIdOrLiteral = true; // not symbol & not identifier
@@ -106,7 +125,7 @@ public class Lexer {
                 if (inIdOrLiteral) {
                     if (stringMode) {
                         // cant parse!
-                        throw new LexerException("Cant parse string until end of file: " + buffer.toString());
+                        throw new LexerException(fileName+": Cant parse string until end of file: " + buffer.toString());
                     } else {
                         buffer.append(now);
                         String str = buffer.toString();
@@ -123,12 +142,15 @@ public class Lexer {
         return nodes;
     }
 
-    public List<Token> tokenize() {
+    public Pair<String,List<Token>> tokenize() {
         var lexedNodes = fuzzyTokenize();
         var tokens = new ArrayList<Token>();
         var line = 1;
         for (int i = 0; i < lexedNodes.size(); i++) {
             LexedNode lexedNode = lexedNodes.get(i);
+            if(lexedNode.getContent().equals(":")){
+                System.out.println(2);
+            }
             switch (lexedNode.getType()) {
                 case LINE_SEPERATOR:
                     tokens.add(new Token(line, Token.Type.BREAK_LINE,""));
@@ -136,7 +158,9 @@ public class Lexer {
                     break;
                 case SYMBOL:
                 case KEYWORD:
-                    var type = Arrays.stream(Token.Type.values()).filter(e -> e.getDef().equals(lexedNode.getContent())).findFirst().get();
+                    var type = Arrays.stream(Token.Type.values()).filter(e -> e.getDef().equals(lexedNode.getContent())).findFirst().orElseThrow(()->{
+                       return new NullPointerException(lexedNode.toString());
+                    });
                     tokens.add(new Token(line, type, type.getDef()));
                     break;
                 case LITERAL_STRING:
@@ -151,7 +175,7 @@ public class Lexer {
                     switch (lexedNode.getContent()) {
                         case "=":
                             if (isEnd) {
-                                throw new LexerException("Invalid syntax");
+                                throw new LexerException(fileName+": Invalid syntax line "+line);
                             }
                             if (lexedNodes.get(i + 1).getType() == LexedNode.NodeType.OPERATOR && lexedNodes.get(i + 1).getContent().equals("=")) { // ==
                                 tokens.add(new Token(line, Token.Type.EQUALS, "=="));
@@ -181,7 +205,9 @@ public class Lexer {
                         case ";":
                             tokens.add(new Token(line, Token.Type.SEMICOLON,";"));
                             break;
-
+                        case ":":
+                            tokens.add(new Token(line,Token.Type.COLON,":"));
+                            break;
                     }
                     break;
                 case IDENTIFIER:
@@ -190,7 +216,7 @@ public class Lexer {
 
             }
         }
-        return tokens;
+        return Pair.of(fileName,tokens);
     }
 
     private static final boolean isInteger(String str) {

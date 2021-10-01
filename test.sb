@@ -1,1 +1,10 @@
-println "aa"
+using java.lang.String
+using java.util.List
+
+@main
+fn main(args: List<String>){
+  std.println("hello world")
+  io.writeFile("test","aa")
+}
+fn main(){
+}

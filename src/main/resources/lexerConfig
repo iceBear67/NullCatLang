@@ -10,6 +10,7 @@
 @keyword true
 @keyword false
 @keyword println
+@keyword using
 (
 @
 )
@@ -17,6 +18,7 @@
 }
 [
 ]
+@operator :
 @operator !
 @operator ^
 @operator .

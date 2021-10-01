@@ -18,7 +18,7 @@ public class Token {
     public enum Type{
         IDENTIFIER(""),
 
-        CLASS("class"),FUNCTION("fn"),ANNOTATION("annotation"),FOR("for"),WHILE("while"),IF("if")
+        CLASS("class"),FUNCTION("fn"),ANNOTATION("annotation"),FOR("for"),WHILE("while"),IF("if"),USING("using")
         ,THIS("this"),TRUE("true"),FALSE("false"),ELSE("else"),VAR("var"),NULL("null"),PRINTLN("println"), // KEYWORDS
 
         LEFT_BRACE("("),RIGHT_BRACE(")"),
@@ -26,7 +26,7 @@ public class Token {
         LEFT_MID_BRACE("["),RIGHT_MID_BRACE("]"),
 
         COMMA(","),DOT("."),MINUS("-"),PLUS("+"),STAR("*"),SLASH("/"), // operators
-        BREAK_LINE("\n"),ASSIGNMENT("="),EQUALS("=="),SEMICOLON(";"),
+        BREAK_LINE("\n"),ASSIGNMENT("="),EQUALS("=="),SEMICOLON(";"),AT("@"),COLON(":"),
 
         LITERAL_STRING(""),LITERAL_NUMBER(""); // literals
         @Getter
