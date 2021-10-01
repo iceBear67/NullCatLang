@@ -11,6 +11,7 @@
 @keyword false
 @keyword println
 @keyword using
+@keyword val
 (
 @
 )
